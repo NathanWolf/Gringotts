@@ -61,12 +61,14 @@ public class GringottsCurrency {
      * @param type the denomination's item type
      * @param value the denomination's value
      */
-    public void addDenomination(ItemStack type, double value) {
+    public Denomination addDenomination(ItemStack type, double value) {
         Denomination d = new Denomination(type, Math.round(centValue(value)));
         denoms.put(d, d);
         // infrequent insertion, so I don't mind sorting on every insert
         sortedDenoms.add(d);
         Collections.sort(sortedDenoms);
+
+        return d;
     }
 
 
@@ -120,5 +122,22 @@ public class GringottsCurrency {
         return denoms.get(d);
     }
 
+    public String format(String formatString, double value) {
+        String output = "";
+        String delimiter = "";
+        for (Denomination denomination : sortedDenoms) {
+            if (denomination.hasName() && denomination.value > value) {
+                int denomAmount = (int)Math.floor(value / denomination.value);
+                value = value - denomAmount * denomination.value;
+                output = output + delimiter + String.format(formatString, denomAmount) + " " + (denomAmount==1.0? denomination.name : denomination.namePlural);
+                delimiter = ", ";
+            }
+        }
 
+        if (value > 0 || output.isEmpty()) {
+            output = output + delimiter + String.format(formatString, value) + " " + (value==1.0? name : namePlural);
+        }
+
+        return output;
+    }
 }
